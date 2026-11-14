@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">NTPlayblow</string>
+    <string name="hint_url">Cole o link do vídeo (http/https)</string>
+    <string name="play">Reproduzir</string>
+    <string name="open_file">Abrir arquivo</string>
+    <string name="load_list">Carregar lista</string>
+    <string name="loading_list">Carregando lista…</string>
+    <string name="err_list">Não foi possível ler a lista. Use um link ou arquivo M3U válido.</string>
+    <string name="err_url">Link inválido. Use um endereço começando com http:// ou https://</string>
+    <string name="err_play">Não foi possível reproduzir. Verifique a conexão ou o link.</string>
+    <string name="exit_title">Sair do NTPlayblow?</string>
+    <string name="exit_msg">Deseja fechar o aplicativo?</string>
+    <string name="cancel">Cancelar</string>
+    <string name="exit">Sair</string>
+</resources>

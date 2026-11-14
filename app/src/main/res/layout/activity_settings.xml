@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="#05080B" android:padding="20dp">
+
+    <LinearLayout
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:gravity="center_vertical">
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:orientation="vertical">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Configurações" android:textColor="#E6EDF2" android:textSize="28sp" android:textStyle="bold"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Personalize o seu NTPlayblow" android:textColor="#7F8E99" android:textSize="14sp"/>
+        </LinearLayout>
+        <Button android:id="@+id/back" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="← Voltar"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
+        android:orientation="horizontal" android:layout_marginTop="16dp">
+        <LinearLayout
+            android:id="@+id/menu"
+            android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+            android:orientation="vertical"/>
+        <ScrollView
+            android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="2"
+            android:layout_marginStart="16dp" android:background="@drawable/bg_tile">
+            <LinearLayout
+                android:id="@+id/content"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:padding="20dp"/>
+        </ScrollView>
+    </LinearLayout>
+</LinearLayout>

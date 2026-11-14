@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="#05080B" android:padding="20dp">
+
+    <LinearLayout
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:gravity="center_vertical">
+        <ImageView android:layout_width="56dp" android:layout_height="56dp"
+            android:src="@drawable/logo_icon" android:contentDescription="NTPlayblow"/>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="NTPlayblow" android:textColor="#CED9DE" android:textSize="26sp"
+            android:textStyle="bold" android:paddingStart="12dp"/>
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:orientation="vertical" android:gravity="center_horizontal">
+            <TextClock android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:format24Hour="HH:mm" android:format12Hour="HH:mm"
+                android:textColor="#E6EDF2" android:textSize="40sp"/>
+            <TextClock android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:format24Hour="EEEE, d 'de' MMMM" android:format12Hour="EEEE, d 'de' MMMM"
+                android:textColor="#7F8E99" android:textSize="14sp"/>
+        </LinearLayout>
+        <Button android:id="@+id/add_top" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="+ Adicionar"/>
+        <Button android:id="@+id/settings" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="⚙ Configurações"/>
+        <Button android:id="@+id/profile" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Perfil" android:textAllCaps="false"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
+        android:orientation="horizontal" android:layout_marginTop="16dp">
+
+        <LinearLayout android:id="@+id/tile_lists"
+            android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+            android:orientation="vertical" android:gravity="center" android:background="@drawable/bg_tile"
+            android:clickable="true" android:focusable="true">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="≡" android:textColor="#4DD0E1" android:textSize="48sp"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Minhas Listas" android:textColor="#E6EDF2" android:textSize="24sp" android:textStyle="bold"/>
+            <TextView android:id="@+id/sub_lists" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textColor="#7F8E99" android:textSize="15sp"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="2"
+            android:orientation="vertical" android:layout_marginStart="14dp">
+
+            <LinearLayout android:id="@+id/tile_videos"
+                android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="2"
+                android:orientation="vertical" android:gravity="center" android:background="@drawable/bg_tile"
+                android:clickable="true" android:focusable="true">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="▶" android:textColor="#4DD0E1" android:textSize="40sp"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Todos os Vídeos" android:textColor="#E6EDF2" android:textSize="22sp" android:textStyle="bold"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Abrir do aparelho" android:textColor="#7F8E99" android:textSize="14sp"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
+                android:orientation="horizontal" android:layout_marginTop="14dp">
+                <LinearLayout android:id="@+id/tile_favs"
+                    android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                    android:orientation="vertical" android:gravity="center" android:background="@drawable/bg_tile"
+                    android:clickable="true" android:focusable="true">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="♥ Favoritos" android:textColor="#E6EDF2" android:textSize="20sp" android:textStyle="bold"/>
+                    <TextView android:id="@+id/sub_favs" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:textColor="#7F8E99" android:textSize="14sp"/>
+                </LinearLayout>
+                <LinearLayout android:id="@+id/tile_add"
+                    android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                    android:orientation="vertical" android:gravity="center" android:background="@drawable/bg_tile"
+                    android:layout_marginStart="14dp" android:clickable="true" android:focusable="true">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="+ Adicionar" android:textColor="#E6EDF2" android:textSize="20sp" android:textStyle="bold"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Lista M3U" android:textColor="#7F8E99" android:textSize="14sp"/>
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

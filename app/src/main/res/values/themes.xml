@@ -1,0 +1,10 @@
+<resources>
+    <style name="Theme.NTPlayblow" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">#05080B</item>
+        <item name="android:statusBarColor">#05080B</item>
+        <item name="android:navigationBarColor">#05080B</item>
+        <item name="android:textColor">#CED9DE</item>
+        <item name="android:colorAccent">#4DD0E1</item>
+        <item name="android:colorControlActivated">#4DD0E1</item>
+    </style>
+</resources>

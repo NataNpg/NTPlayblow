@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:gravity="bottom" android:padding="10dp">
+
+    <LinearLayout
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical" android:background="@drawable/bg_tile" android:padding="12dp">
+
+        <LinearLayout
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:gravity="center_vertical">
+            <TextView android:id="@+id/ctl_title"
+                android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                android:textColor="#E6EDF2" android:textSize="17sp" android:textStyle="bold"
+                android:singleLine="true" android:ellipsize="end"/>
+            <TextView android:id="@+id/ctl_live"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="● AO VIVO" android:textColor="#FFFFFF" android:textSize="12sp" android:textStyle="bold"
+                android:background="#E53935" android:paddingStart="8dp" android:paddingEnd="8dp"
+                android:paddingTop="2dp" android:paddingBottom="2dp" android:visibility="gone"/>
+            <TextClock
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:format24Hour="HH:mm" android:format12Hour="HH:mm"
+                android:textColor="#E6EDF2" android:textSize="17sp" android:paddingStart="12dp"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/ctl_seekrow"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:gravity="center_vertical">
+            <TextView android:id="@id/exo_position" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textColor="#CED9DE" android:textSize="12sp"/>
+            <androidx.media3.ui.DefaultTimeBar
+                android:id="@id/exo_progress"
+                android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1"
+                android:layout_marginStart="8dp" android:layout_marginEnd="8dp"
+                app:played_color="#4DD0E1" app:scrubber_color="#4DD0E1"
+                app:buffered_color="#66CED9DE" app:unplayed_color="#33FFFFFF"/>
+            <TextView android:id="@id/exo_duration" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textColor="#CED9DE" android:textSize="12sp"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:gravity="center_vertical">
+            <TextView android:id="@+id/ctl_resize"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textColor="#E6EDF2" android:textSize="13sp" android:padding="10dp"
+                android:background="@drawable/bg_item" android:clickable="true" android:focusable="true"/>
+            <LinearLayout
+                android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                android:orientation="horizontal" android:gravity="center">
+                <ImageButton android:id="@id/exo_prev" android:layout_width="44dp" android:layout_height="44dp"
+                    android:src="@android:drawable/ic_media_previous" android:background="@drawable/bg_item"
+                    android:contentDescription="Anterior"/>
+                <ImageButton android:id="@id/exo_rew" android:layout_width="44dp" android:layout_height="44dp"
+                    android:layout_marginStart="8dp" android:src="@android:drawable/ic_media_rew"
+                    android:background="@drawable/bg_item" android:contentDescription="Voltar 10 segundos"/>
+                <ImageButton android:id="@id/exo_play_pause" android:layout_width="56dp" android:layout_height="56dp"
+                    android:layout_marginStart="8dp" android:layout_marginEnd="8dp"
+                    android:background="@drawable/bg_item" android:contentDescription="Reproduzir ou pausar"/>
+                <ImageButton android:id="@id/exo_ffwd" android:layout_width="44dp" android:layout_height="44dp"
+                    android:src="@android:drawable/ic_media_ff" android:background="@drawable/bg_item"
+                    android:contentDescription="Avançar 10 segundos"/>
+                <ImageButton android:id="@id/exo_next" android:layout_width="44dp" android:layout_height="44dp"
+                    android:layout_marginStart="8dp" android:src="@android:drawable/ic_media_next"
+                    android:background="@drawable/bg_item" android:contentDescription="Próximo"/>
+            </LinearLayout>
+            <TextView android:id="@+id/ctl_count"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textColor="#4DD0E1" android:textSize="14sp" android:textStyle="bold"
+                android:padding="8dp" android:visibility="gone"/>
+            <TextView android:id="@+id/ctl_full"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="⛶ Tela cheia" android:textColor="#E6EDF2" android:textSize="13sp" android:padding="10dp"
+                android:background="@drawable/bg_item" android:clickable="true" android:focusable="true"/>
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>
