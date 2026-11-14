@@ -24,7 +24,7 @@ import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import java.net.URL
 
-class Ch(val num: Int, val title: String, val url: String, val group: String)
+class Ch(val num: Int, val title: String, val url: String, val group: String, val logo: String = "", val type: String = "live")
 
 class MainActivity : Activity() {
     private var player: ExoPlayer? = null
@@ -42,6 +42,7 @@ class MainActivity : Activity() {
     private var favs: MutableSet<String> = HashSet()
     private var fullscreen = false
     private var startCat: String? = null
+    private var typeFilter: String? = null   // "live", "movie" ou "series" (vem da tela inicial)
 
     override fun onCreate(b: Bundle?) {
         super.onCreate(b)
@@ -91,18 +92,25 @@ class MainActivity : Activity() {
         url.setOnEditorActionListener { _, id, _ ->
             if (id == EditorInfo.IME_ACTION_GO) { playFromField(); true } else false
         }
+        typeFilter = intent?.getStringExtra("type")
+        startCat = intent?.getStringExtra("cat")
         val data = intent?.data
+        val link = intent?.getStringExtra("url")
         if (data != null) start(data.toString())
+        else if (link != null) loadList(link)
         else {
             // listas da conta (servidor) + a última lista enviada/carregada neste perfil
             val srcs = Account.lists(this) + listOfNotNull(prefs.getString("last_list", null))
             if (srcs.isNotEmpty()) loadList(srcs.joinToString("\n"), persist = false)
+            else {
+                val why = "Nenhuma lista. " + Account.diag(this) + " Use \"Carregar lista\" ou peça ao administrador."
+                title(why); Toast.makeText(this, why, Toast.LENGTH_LONG).show()
+            }
         }
         when (intent?.getStringExtra("pick")) {
             "video" -> pick("video/*", REQ_FILE)
             "list" -> pick("*/*", REQ_LIST)
         }
-        startCat = intent?.getStringExtra("cat")
     }
 
     private fun pick(mime: String, req: Int) =
@@ -180,19 +188,32 @@ class MainActivity : Activity() {
     }
 
     // ---- lista M3U: "#EXTINF:-1 group-title="X",Titulo" e a URL na linha seguinte ----
+    // tipo pelo caminho da URL (/movie/, /series/ no formato Xtream) ou pelo nome da categoria
+    private fun typeOf(url: String, group: String): String {
+        val u = url.lowercase(); val g = group.lowercase()
+        return when {
+            "/series/" in u || "série" in g || "serie" in g || "season" in g -> "series"
+            "/movie/" in u || "filme" in g || "movie" in g || "vod" in g -> "movie"
+            else -> "live"
+        }
+    }
+
     private fun parseM3u(text: String): List<Ch> {
         val out = ArrayList<Ch>()
         val groupRe = Regex("group-title=\"([^\"]*)\"")
+        val logoRe = Regex("tvg-logo=\"([^\"]*)\"")
         var title: String? = null
         var group = "Sem categoria"
+        var logo = ""
         for (raw in text.lineSequence()) {
             val l = raw.trim()
             if (l.startsWith("#EXTINF")) {
                 title = l.substringAfterLast(',').trim()
                 group = groupRe.find(l)?.groupValues?.get(1)?.ifEmpty { null } ?: "Sem categoria"
+                logo = logoRe.find(l)?.groupValues?.get(1) ?: ""
             } else if (l.isNotEmpty() && !l.startsWith("#")) {
-                out.add(Ch(out.size + 1, title?.takeIf { it.isNotEmpty() } ?: l, l, group))
-                title = null; group = "Sem categoria"
+                out.add(Ch(out.size + 1, title?.takeIf { it.isNotEmpty() } ?: l, l, group, logo, typeOf(l, group)))
+                title = null; group = "Sem categoria"; logo = ""
             }
         }
         return out
@@ -201,6 +222,7 @@ class MainActivity : Activity() {
     private fun loadList(src: String, persist: Boolean = true) {
         Toast.makeText(this, R.string.loading_list, Toast.LENGTH_SHORT).show()
         Thread {
+            var err: String? = null
             val parsed = try {
                 // várias listas separadas por "\n" (listas da conta + lista enviada por QR)
                 val merged = ArrayList<Ch>()
@@ -211,14 +233,17 @@ class MainActivity : Activity() {
                             c.getInputStream().bufferedReader().use { it.readText() }
                         } else contentResolver.openInputStream(Uri.parse(s))!!.bufferedReader().use { it.readText() }
                         merged += parseM3u(text)
-                    } catch (_: Exception) { /* uma lista com erro não derruba as outras */ }
+                    } catch (e: Exception) { err = e.message ?: e.javaClass.simpleName }
                 }
-                merged.mapIndexed { i, c -> Ch(i + 1, c.title, c.url, c.group) }
+                merged.mapIndexed { i, c -> Ch(i + 1, c.title, c.url, c.group, c.logo, c.type) }
+                    .filter { typeFilter == null || it.type == typeFilter }
                     .filterNot { Store.blocked(this, it.group, it.title) }
             } catch (_: Exception) { emptyList() }
             runOnUiThread {
                 if (parsed.isEmpty()) {
-                    Toast.makeText(this, R.string.err_list, Toast.LENGTH_LONG).show()
+                    val why = err?.let { "Erro ao abrir a lista: $it" } ?: "A lista não tem itens nesta seção."
+                    title(why)
+                    Toast.makeText(this, why, Toast.LENGTH_LONG).show()
                 } else {
                     all = parsed
                     if (persist) prefs.edit().putString("last_list", src).apply()
@@ -273,6 +298,7 @@ class MainActivity : Activity() {
             val ch = shown[p]
             row.findViewById<TextView>(R.id.num).text = "#" + ch.num
             row.findViewById<TextView>(R.id.name).text = ch.title
+            ImageLoader.load(ch.logo, row.findViewById(R.id.logo))
             val heart = row.findViewById<TextView>(R.id.heart)
             heart.text = if (ch.url in favs) "♥" else "♡"
             heart.setOnClickListener {

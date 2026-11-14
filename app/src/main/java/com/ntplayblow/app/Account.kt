@@ -25,6 +25,7 @@ object Account {
     fun loggedIn(c: Context) = app(c).contains("acc_auth")
     fun user(c: Context): String? = app(c).getString("acc_user", null)
     fun expires(c: Context): String? = app(c).getString("srv_exp", null)?.takeIf { it.isNotBlank() }
+    fun diag(c: Context): String = app(c).getString("srv_diag", "") ?: ""
     fun lists(c: Context): List<String> = (app(c).getString("srv_lists", "") ?: "").split("\n").filter { it.isNotBlank() }
 
     fun logout(c: Context) = app(c).edit().remove("acc_user").remove("acc_auth").remove("acc_enc")
@@ -93,6 +94,7 @@ object Account {
         }
 
         val urls = ArrayList<String>()
+        var diag = "A conta não tem listas salvas."
         val data = json.optString("data")
         if (data.isNotEmpty()) {
             try {
@@ -106,12 +108,13 @@ object Account {
                     val url = l.optString("url")
                     if (l.optBoolean("active", true) && url.startsWith("http")) urls.add(url)
                 }
-            } catch (_: Exception) { /* dados ilegíveis: entra sem listas */ }
+                diag = if (urls.isEmpty()) "A conta não tem lista ativa." else "${urls.size} lista(s) da conta."
+            } catch (_: Exception) { diag = "Dados da conta ilegíveis (a senha foi trocada?)." }
         }
         app(c).edit().putString("acc_user", u).putString("acc_auth", auth)
             .putString("acc_enc", Base64.encodeToString(enc, Base64.NO_WRAP))
             .putString("srv_lists", urls.joinToString("\n"))
-            .putString("srv_exp", json.optString("expires_at")).apply()
+            .putString("srv_exp", json.optString("expires_at")).putString("srv_diag", diag).apply()
         return Result(true, "ok")
     }
 }
