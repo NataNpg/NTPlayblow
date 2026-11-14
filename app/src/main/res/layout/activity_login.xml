@@ -1,26 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="match_parent"
-    android:orientation="vertical" android:gravity="center" android:background="#05080B" android:padding="24dp">
+    android:orientation="horizontal" android:gravity="center" android:background="#05080B" android:padding="24dp">
 
-    <ImageView android:layout_width="96dp" android:layout_height="96dp"
-        android:src="@drawable/logo_icon" android:contentDescription="NTPlayblow"/>
-    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-        android:text="NTPlayblow" android:textColor="#CED9DE" android:textSize="28sp" android:textStyle="bold"
-        android:paddingTop="8dp" android:paddingBottom="16dp"/>
-
-    <LinearLayout android:id="@+id/form"
-        android:layout_width="320dp" android:layout_height="wrap_content" android:orientation="vertical">
-        <EditText android:id="@+id/user" android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:hint="Usuário" android:inputType="textNoSuggestions" android:singleLine="true"
-            android:textColor="#E6EDF2" android:textColorHint="#7F8E99" android:imeOptions="actionNext"/>
-        <EditText android:id="@+id/pass" android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:hint="Senha" android:inputType="textPassword" android:singleLine="true"
-            android:textColor="#E6EDF2" android:textColorHint="#7F8E99" android:imeOptions="actionDone"/>
-        <Button android:id="@+id/go" android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:text="Entrar" android:layout_marginTop="12dp"/>
+    <LinearLayout
+        android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+        android:orientation="vertical" android:gravity="center">
+        <ImageView android:layout_width="80dp" android:layout_height="80dp"
+            android:src="@drawable/logo_icon" android:contentDescription="NTPlayblow"/>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="NTPlayblow" android:textColor="#CED9DE" android:textSize="26sp" android:textStyle="bold"
+            android:paddingTop="6dp" android:paddingBottom="12dp"/>
+        <LinearLayout android:id="@+id/form"
+            android:layout_width="300dp" android:layout_height="wrap_content" android:orientation="vertical">
+            <EditText android:id="@+id/user" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:hint="Usuário" android:inputType="textNoSuggestions" android:singleLine="true"
+                android:textColor="#E6EDF2" android:textColorHint="#7F8E99" android:imeOptions="actionNext"/>
+            <EditText android:id="@+id/pass" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:hint="Senha" android:inputType="textPassword" android:singleLine="true"
+                android:textColor="#E6EDF2" android:textColorHint="#7F8E99" android:imeOptions="actionDone"/>
+            <Button android:id="@+id/go" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Entrar" android:layout_marginTop="10dp"/>
+        </LinearLayout>
+        <TextView android:id="@+id/msg" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:textColor="#FF8A80" android:textSize="14sp" android:paddingTop="10dp"/>
     </LinearLayout>
 
-    <TextView android:id="@+id/msg" android:layout_width="wrap_content" android:layout_height="wrap_content"
-        android:textColor="#FF8A80" android:textSize="14sp" android:paddingTop="12dp"/>
+    <LinearLayout
+        android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+        android:orientation="vertical" android:gravity="center" android:background="@drawable/bg_tile"
+        android:padding="16dp" android:layout_marginStart="16dp">
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Ainda não tem acesso?" android:textColor="#E6EDF2" android:textSize="18sp" android:textStyle="bold"/>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Peça o app ou a lista pelo WhatsApp" android:textColor="#7F8E99" android:textSize="13sp"
+            android:paddingBottom="10dp"/>
+        <ImageView android:id="@+id/wa_qr" android:layout_width="150dp" android:layout_height="150dp"
+            android:background="#FFFFFF" android:padding="6dp" android:contentDescription="QR do WhatsApp"/>
+        <Button android:id="@+id/wa_btn" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Abrir WhatsApp" android:layout_marginTop="10dp"/>
+    </LinearLayout>
 </LinearLayout>

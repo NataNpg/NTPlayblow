@@ -70,6 +70,13 @@ object Store {
         return ADULT.any { it in s }
     }
 
+    fun qr(text: String, size: Int): android.graphics.Bitmap {
+        val m = com.google.zxing.qrcode.QRCodeWriter().encode(text, com.google.zxing.BarcodeFormat.QR_CODE, size, size)
+        val bmp = android.graphics.Bitmap.createBitmap(size, size, android.graphics.Bitmap.Config.RGB_565)
+        for (x in 0 until size) for (y in 0 until size) bmp.setPixel(x, y, if (m[x, y]) Color.BLACK else Color.WHITE)
+        return bmp
+    }
+
     fun avatarView(c: Context, idx: Int, sizeDp: Int, textSp: Float): TextView {
         val (sym, col) = AVATARS[idx]
         val d = c.resources.displayMetrics.density

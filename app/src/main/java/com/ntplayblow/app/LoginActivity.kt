@@ -23,6 +23,14 @@ class LoginActivity : Activity() {
         val pass = findViewById<EditText>(R.id.pass)
         go.setOnClickListener { doLogin(user.text.toString(), pass.text.toString()) }
 
+        // pedido de acesso por WhatsApp: +55 (42) 99804-0495
+        val wa = "https://wa.me/5542998040495?text=" +
+            android.net.Uri.encode("Olá! Quero solicitar acesso ao NTPlayblow (aplicativo ou lista).")
+        findViewById<android.widget.ImageView>(R.id.wa_qr).setImageBitmap(Store.qr(wa, 400))
+        findViewById<View>(R.id.wa_btn).setOnClickListener {
+            try { startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(wa))) } catch (_: Exception) { }
+        }
+
         if (Account.loggedIn(this)) {
             // sessão salva: revalida em segundo plano (vencida/bloqueada volta ao login)
             form.visibility = View.GONE
