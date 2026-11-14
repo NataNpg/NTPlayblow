@@ -1,8 +1,30 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
 }
+
+// Chave de release fica FORA do repositório: ../keystore/keystore.properties (storeFile, storePassword, keyAlias, keyPassword)
+val ksFile = rootProject.file("../keystore/keystore.properties")
+
 android {
+    signingConfigs {
+        create("release") {
+            if (ksFile.exists()) {
+                val p = Properties().apply { ksFile.inputStream().use { load(it) } }
+                storeFile = file(p.getProperty("storeFile"))
+                storePassword = p.getProperty("storePassword")
+                keyAlias = p.getProperty("keyAlias")
+                keyPassword = p.getProperty("keyPassword")
+            }
+        }
+    }
+    buildTypes {
+        release {
+            if (ksFile.exists()) signingConfig = signingConfigs.getByName("release")
+        }
+    }
     namespace = "com.ntplayblow.app"
     compileSdk = 35
     defaultConfig {
