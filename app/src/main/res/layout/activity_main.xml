@@ -8,24 +8,13 @@
         android:id="@+id/bar"
         android:layout_width="match_parent" android:layout_height="wrap_content"
         android:orientation="horizontal" android:padding="8dp" android:gravity="center_vertical">
-        <ImageView android:layout_width="44dp" android:layout_height="44dp"
-            android:src="@drawable/logo_icon" android:contentDescription="@string/app_name"/>
+        <Button android:id="@+id/back" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="←  Voltar"/>
+        <ImageView android:layout_width="40dp" android:layout_height="40dp" android:layout_marginStart="12dp"
+            android:src="@drawable/logo_icon" android:contentDescription="NTPlayblow"/>
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="@string/app_name" android:textColor="#CED9DE" android:textSize="20sp"
-            android:textStyle="bold" android:paddingStart="10dp" android:paddingEnd="16dp"/>
-        <EditText
-            android:id="@+id/url"
-            android:visibility="gone"
-            android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
-            android:hint="@string/hint_url" android:inputType="textUri" android:imeOptions="actionGo"
-            android:singleLine="true" android:textColor="#E6EDF2" android:textColorHint="#7F8E99"/>
-        <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1"/>
-        <Button android:id="@+id/play" android:visibility="gone" android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="@string/play"/>
-        <Button android:id="@+id/open" android:visibility="gone" android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="@string/open_file"/>
-        <Button android:id="@+id/list" android:visibility="gone" android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="@string/load_list"/>
+            android:text="TV ao Vivo" android:textColor="#CED9DE" android:textSize="20sp"
+            android:textStyle="bold" android:paddingStart="10dp"/>
     </LinearLayout>
 
     <LinearLayout
@@ -35,12 +24,14 @@
             android:id="@+id/categories"
             android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="2"
             android:divider="@android:color/transparent" android:dividerHeight="6dp"
+            android:listSelector="@drawable/sel_focus" android:drawSelectorOnTop="true"
             android:choiceMode="singleChoice"/>
         <ListView
             android:id="@+id/channels"
             android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="4"
             android:layout_marginStart="8dp"
             android:divider="@android:color/transparent" android:dividerHeight="6dp"
+            android:listSelector="@drawable/sel_focus" android:drawSelectorOnTop="true"
             android:choiceMode="singleChoice"/>
         <LinearLayout
             android:id="@+id/right"

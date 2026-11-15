@@ -53,6 +53,7 @@ class SettingsActivity : Activity() {
         addItem("Remover lista", danger = true) {
             confirm("Remover a lista carregada e os favoritos?") {
                 prefs.edit().remove("last_list").remove("last_count").remove("favs").apply()
+                Library.invalidate()
                 toast("Lista removida")
             }
         }

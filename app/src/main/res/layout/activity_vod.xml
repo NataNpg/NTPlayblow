@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="@drawable/bg_app">
+
+    <LinearLayout
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:padding="8dp" android:gravity="center_vertical">
+        <Button android:id="@+id/back" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="←  Voltar"/>
+        <ImageView android:layout_width="40dp" android:layout_height="40dp" android:layout_marginStart="12dp"
+            android:src="@drawable/logo_icon" android:contentDescription="NTPlayblow"/>
+        <TextView android:id="@+id/vtitle" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:textColor="#CED9DE" android:textSize="20sp" android:textStyle="bold" android:paddingStart="10dp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
+        android:orientation="horizontal" android:padding="8dp">
+        <ListView
+            android:id="@+id/categories"
+            android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="2"
+            android:divider="@android:color/transparent" android:dividerHeight="6dp"
+            android:listSelector="@drawable/sel_focus" android:drawSelectorOnTop="true"/>
+        <FrameLayout
+            android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="7"
+            android:layout_marginStart="10dp">
+            <GridView
+                android:id="@+id/grid"
+                android:layout_width="match_parent" android:layout_height="match_parent"
+                android:numColumns="auto_fit" android:columnWidth="150dp" android:stretchMode="columnWidth"
+                android:horizontalSpacing="12dp" android:verticalSpacing="12dp"
+                android:listSelector="@drawable/sel_focus" android:drawSelectorOnTop="true"/>
+            <TextView android:id="@+id/msg" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_gravity="center" android:gravity="center" android:padding="24dp"
+                android:textColor="#CED9DE" android:textSize="16sp"/>
+        </FrameLayout>
+    </LinearLayout>
+</LinearLayout>

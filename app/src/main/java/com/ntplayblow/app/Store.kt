@@ -64,6 +64,8 @@ object Store {
     fun setParental(c: Context, on: Boolean) = app(c).edit().putBoolean("parental", on).apply()
 
     private val ADULT = listOf("adulto", "adult", "xxx", "porn", "sexo", "erotic", "erótic", "+18", "18+", "hentai")
+    fun adultGroup(g: String): Boolean { val s = g.lowercase(); return ADULT.any { it in s } }
+
     fun blocked(c: Context, group: String, title: String): Boolean {
         if (!parentalOn(c)) return false
         val s = (group + " " + title).lowercase()

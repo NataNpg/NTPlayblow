@@ -1,17 +1,13 @@
 package com.ntplayblow.app
 
 import android.app.Activity
-import android.app.AlertDialog
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.inputmethod.EditorInfo
 import android.widget.BaseAdapter
-import android.widget.Button
-import android.widget.EditText
+import android.widget.ImageView
 import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
@@ -22,33 +18,35 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
-import java.net.URL
 
-class Ch(val num: Int, val title: String, val url: String, val group: String, val logo: String = "", val type: String = "live")
-
+// TV ao Vivo: categorias, canais e o player ao lado. Os dados vêm da Library (carregada uma vez).
 class MainActivity : Activity() {
     private var player: ExoPlayer? = null
     private lateinit var view: PlayerView
-    private lateinit var url: EditText
     private lateinit var catList: ListView
     private lateinit var chList: ListView
     private lateinit var now: TextView
     private val prefs get() = Store.prefs(this)
     private var current: String? = null
 
-    private var all: List<Ch> = emptyList()
     private var shown: List<Ch> = emptyList()
-    private var cats: List<String> = emptyList()   // "Favoritos", "Todos", grupos...
+    private var cats: List<String> = emptyList()      // "Favoritos", "Todos", categorias...
+    private var counts: Map<String, Int> = emptyMap()
     private var favs: MutableSet<String> = HashSet()
     private var fullscreen = false
+    private var offset = 0                            // posição de shown[0] dentro da fila do player
     private var startCat: String? = null
-    private var typeFilter: String? = null   // "live", "movie" ou "series" (vem da tela inicial)
 
     override fun onCreate(b: Bundle?) {
         super.onCreate(b)
+        // vídeo aberto por outro app (link http): vai direto para o player
+        intent?.data?.let { d ->
+            Library.queue = listOf(d.toString() to d.toString()); Library.queueIndex = 0
+            Library.queueType = ""; Library.queueTitle = ""
+            startActivity(Intent(this, PlayerActivity::class.java)); finish(); return
+        }
         setContentView(R.layout.activity_main)
         view = findViewById(R.id.player)
-        url = findViewById(R.id.url)
         catList = findViewById(R.id.categories)
         chList = findViewById(R.id.channels)
         now = findViewById(R.id.now)
@@ -57,13 +55,13 @@ class MainActivity : Activity() {
             "fill" -> AspectRatioFrameLayout.RESIZE_MODE_FILL
             else -> AspectRatioFrameLayout.RESIZE_MODE_FIT
         }
-        view.findViewById<TextView>(R.id.ctl_resize)?.let { b ->
-            fun label() { b.text = when (view.resizeMode) {
+        view.findViewById<TextView>(R.id.ctl_resize)?.let { b2 ->
+            fun label() { b2.text = when (view.resizeMode) {
                 AspectRatioFrameLayout.RESIZE_MODE_ZOOM -> "Preencher"
                 AspectRatioFrameLayout.RESIZE_MODE_FILL -> "Esticar"
                 else -> "Original" } }
             label()
-            b.setOnClickListener {
+            b2.setOnClickListener {
                 val next = when (view.resizeMode) {
                     AspectRatioFrameLayout.RESIZE_MODE_FIT -> AspectRatioFrameLayout.RESIZE_MODE_ZOOM
                     AspectRatioFrameLayout.RESIZE_MODE_ZOOM -> AspectRatioFrameLayout.RESIZE_MODE_FILL
@@ -81,47 +79,46 @@ class MainActivity : Activity() {
 
         catList.setOnItemClickListener { _, _, i, _ -> selectCategory(i) }
         chList.setOnItemClickListener { _, _, i, _ -> playChannel(i) }
-        view.setFullscreenButtonClickListener { setFullscreen(it) }
-        findViewById<Button>(R.id.play).setOnClickListener { playFromField() }
-        findViewById<Button>(R.id.open).setOnClickListener { pick("video/*", REQ_FILE) }
-        findViewById<Button>(R.id.list).setOnClickListener {
-            val s = url.text.toString().trim()
-            if (s.startsWith("http://") || s.startsWith("https://")) loadList(s)
-            else pick("*/*", REQ_LIST)
-        }
-        url.setOnEditorActionListener { _, id, _ ->
-            if (id == EditorInfo.IME_ACTION_GO) { playFromField(); true } else false
-        }
-        typeFilter = intent?.getStringExtra("type")
+        findViewById<View>(R.id.back).setOnClickListener { onBackPressed() }
         startCat = intent?.getStringExtra("cat")
-        val data = intent?.data
-        val link = intent?.getStringExtra("url")
-        if (data != null) start(data.toString())
-        else if (link != null) loadList(link)
-        else {
-            // listas da conta (servidor) + a última lista enviada/carregada neste perfil
-            val srcs = Account.lists(this) + listOfNotNull(prefs.getString("last_list", null))
-            if (srcs.isNotEmpty()) loadList(srcs.joinToString("\n"), persist = false)
-            else {
-                val why = "Nenhuma lista. " + Account.diag(this) + " Use \"Carregar lista\" ou peça ao administrador."
-                title(why); Toast.makeText(this, why, Toast.LENGTH_LONG).show()
-            }
-        }
-        when (intent?.getStringExtra("pick")) {
-            "video" -> pick("video/*", REQ_FILE)
-            "list" -> pick("*/*", REQ_LIST)
-        }
+
+        title("Carregando lista…")
+        Library.ensure(this, { n -> title("Carregando lista… $n itens") }) { onReady() }
     }
 
-    private fun pick(mime: String, req: Int) =
-        startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-            addCategory(Intent.CATEGORY_OPENABLE); type = mime
-        }, req)
+    private fun onReady() {
+        if (Library.live.isEmpty()) {
+            val why = Library.error?.let { "Erro ao abrir a lista: $it" } ?: "A lista não tem canais de TV."
+            title(why); Toast.makeText(this, why, Toast.LENGTH_LONG).show()
+            return
+        }
+        title("")
+        counts = Library.live.groupingBy { it.group }.eachCount()
+        cats = listOf("Favoritos", "Todos") + Library.order(counts.keys.toList())
+        catList.adapter = CatAdapter()
+        chList.adapter = ChAdapter()
+        selectCategory(cats.indexOf(startCat).takeIf { it >= 0 } ?: 1)
+    }
 
-    private fun playFromField() {
-        val s = url.text.toString().trim()
-        if (s.startsWith("http://") || s.startsWith("https://")) start(s)
-        else Toast.makeText(this, R.string.err_url, Toast.LENGTH_SHORT).show()
+    private fun visible(c: Ch) = Pin.unlocked || !Store.adultGroup(c.group)
+
+    private fun selectCategory(i: Int) {
+        val c = cats[i]
+        if (Store.adultGroup(c) && !Pin.unlocked) { Pin.require(this) { selectCategory(i) }; return }
+        shown = when (c) {
+            "Favoritos" -> Library.live.filter { it.url in favs && visible(it) }
+            "Todos" -> Library.live.filter { visible(it) }
+            else -> Library.live.filter { it.group == c }
+        }
+        catList.setItemChecked(i, true)
+        (catList.adapter as? BaseAdapter)?.notifyDataSetChanged()
+        (chList.adapter as? BaseAdapter)?.notifyDataSetChanged()
+    }
+
+    private fun countOf(cat: String) = when (cat) {
+        "Favoritos" -> Library.live.count { it.url in favs }
+        "Todos" -> Library.live.size
+        else -> counts[cat] ?: 0
     }
 
     private fun setFullscreen(on: Boolean) {
@@ -135,16 +132,16 @@ class MainActivity : Activity() {
         view.findViewById<TextView>(R.id.ctl_title)?.text = s
     }
 
-    // AO VIVO esconde a barra de progresso; contador "2 / 35" só com playlist
+    // AO VIVO esconde a barra de progresso; contador "2 / 35" mostra a posição na lista
     private fun updateBar() {
         val p = player ?: return
         val live = p.isCurrentMediaItemLive || p.duration == C.TIME_UNSET
         view.findViewById<View>(R.id.ctl_live)?.visibility = if (live) View.VISIBLE else View.GONE
         view.findViewById<View>(R.id.ctl_seekrow)?.visibility = if (live) View.GONE else View.VISIBLE
-        val n = p.mediaItemCount
+        val n = shown.size
         view.findViewById<TextView>(R.id.ctl_count)?.apply {
             visibility = if (n > 1) View.VISIBLE else View.GONE
-            text = "${p.currentMediaItemIndex + 1} / $n"
+            text = "${offset + p.currentMediaItemIndex + 1} / $n"
         }
     }
 
@@ -159,8 +156,8 @@ class MainActivity : Activity() {
 
             override fun onMediaItemTransition(item: MediaItem?, reason: Int) {
                 current = item?.localConfiguration?.uri?.toString()
-                val i = it.currentMediaItemIndex
-                if (shown.isNotEmpty() && i in shown.indices) {
+                val i = offset + it.currentMediaItemIndex
+                if (i in shown.indices) {
                     chList.setItemChecked(i, true); chList.smoothScrollToPosition(i)
                     title(shown[i].title)
                 }
@@ -168,140 +165,17 @@ class MainActivity : Activity() {
         })
     }
 
-    private fun start(uri: String) {
-        saveProgress()
-        current = uri
-        title(uri)
-        val p = exo()
-        p.setMediaItem(MediaItem.fromUri(uri))
-        p.seekTo(prefs.getLong(uri, 0L))
-        p.prepare(); p.playWhenReady = true
-    }
-
     private fun playChannel(i: Int) {
         saveProgress()
         val p = exo()
-        p.setMediaItems(shown.map { MediaItem.fromUri(it.url) }, i, prefs.getLong(shown[i].url, 0L))
+        // a fila do player é uma janela ao redor do canal (listas têm dezenas de milhares de itens)
+        val from = maxOf(0, i - 100)
+        val to = minOf(shown.size, i + 200)
+        offset = from
+        p.setMediaItems(shown.subList(from, to).map { MediaItem.fromUri(it.url) }, i - from, 0L)
         current = shown[i].url
         title(shown[i].title)
         p.prepare(); p.playWhenReady = true
-    }
-
-    // ---- lista M3U: "#EXTINF:-1 group-title="X",Titulo" e a URL na linha seguinte ----
-    // tipo pelo caminho da URL (/movie/, /series/ no formato Xtream) ou pelo nome da categoria
-    private fun typeOf(url: String, group: String): String {
-        val u = url.lowercase(); val g = group.lowercase()
-        return when {
-            "/series/" in u || "série" in g || "serie" in g || "season" in g -> "series"
-            "/movie/" in u || "filme" in g || "movie" in g || "vod" in g -> "movie"
-            else -> "live"
-        }
-    }
-
-    private var head = ""   // primeira linha da resposta, para explicar quando não é uma lista M3U
-    private var counts: Map<String, Int> = emptyMap()
-
-    // Lê a lista linha a linha (sem carregar o arquivo inteiro na memória) e guarda só o que a tela pede.
-    private fun parseStream(r: java.io.BufferedReader, out: ArrayList<Ch>, pool: HashMap<String, String>, onProgress: (Int) -> Unit): Int {
-        val groupRe = Regex("group-title=\"([^\"]*)\"")
-        val logoRe = Regex("tvg-logo=\"([^\"]*)\"")
-        val parental = Store.parentalOn(this)
-        var title: String? = null
-        var group = "Sem categoria"
-        var logo = ""
-        var seen = 0
-        while (true) {
-            val l = (r.readLine() ?: break).trim()
-            if (l.isEmpty()) continue
-            if (head.isEmpty()) head = l.take(60)
-            if (l.startsWith("#EXTINF")) {
-                title = l.substringAfterLast(',').trim()
-                val g0 = groupRe.find(l)?.groupValues?.get(1)?.ifEmpty { null } ?: "Sem categoria"
-                group = pool.getOrPut(g0) { g0 }   // reaproveita o mesmo texto da categoria
-                logo = logoRe.find(l)?.groupValues?.get(1) ?: ""
-            } else if (!l.startsWith("#")) {
-                seen++
-                val t = typeOf(l, group)
-                if ((typeFilter == null || t == typeFilter) && !(parental && Store.blocked(this, group, title ?: "")))
-                    out.add(Ch(out.size + 1, title?.takeIf { it.isNotEmpty() } ?: l, l, group, logo, t))
-                title = null; group = "Sem categoria"; logo = ""
-                if (seen % 3000 == 0) onProgress(out.size)
-            }
-        }
-        return seen
-    }
-
-    private fun loadList(src: String, persist: Boolean = true) {
-        Toast.makeText(this, R.string.loading_list, Toast.LENGTH_SHORT).show()
-        title("Carregando lista…")
-        Thread {
-            var err: String? = null
-            val out = ArrayList<Ch>()
-            val pool = HashMap<String, String>()
-            try {
-                // várias listas separadas por "\n" (listas da conta + lista enviada por QR)
-                for (s in src.split("\n").filter { it.isNotBlank() }) {
-                    try {
-                        head = ""
-                        val progress = { n: Int -> runOnUiThread { title("Carregando lista… $n itens") } }
-                        val seen = if (s.startsWith("http")) {
-                            val c = (URL(s).openConnection() as java.net.HttpURLConnection).apply {
-                                connectTimeout = 15000; readTimeout = 60000
-                                setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 11) NTPlayblow/1.0")
-                                setRequestProperty("Accept", "*/*")
-                            }
-                            val code = c.responseCode
-                            if (code !in 200..299) throw java.io.IOException("HTTP $code em ${URL(s).host}")
-                            c.inputStream.bufferedReader().use { parseStream(it, out, pool, progress) }
-                        } else contentResolver.openInputStream(Uri.parse(s))!!.bufferedReader().use { parseStream(it, out, pool, progress) }
-                        if (seen == 0) throw java.io.IOException("a resposta não é uma lista M3U: $head")
-                    } catch (e: Exception) {
-                        // esconde o link (leva usuário e senha da lista)
-                        err = (e.message ?: e.javaClass.simpleName).replace(Regex("https?://\\S+"), "<link>")
-                    }
-                }
-            } catch (t: Throwable) {
-                err = if (t is OutOfMemoryError) "memória insuficiente (lista muito grande)" else (t.message ?: t.javaClass.simpleName)
-            }
-            val parsed: List<Ch> = out
-            runOnUiThread {
-                if (parsed.isEmpty()) {
-                    val why = err?.let { "Erro ao abrir a lista: $it" } ?: "A lista não tem itens nesta seção."
-                    title(why)
-                    Toast.makeText(this, why, Toast.LENGTH_LONG).show()
-                } else {
-                    if (err != null) Toast.makeText(this, "Lista incompleta: $err", Toast.LENGTH_LONG).show()
-                    all = parsed
-                    if (persist) prefs.edit().putString("last_list", src).apply()
-                    counts = parsed.groupingBy { it.group }.eachCount()
-                    cats = listOf("Favoritos", "Todos") + counts.keys
-                    catList.adapter = CatAdapter()
-                    chList.adapter = ChAdapter()
-                    prefs.edit().putInt("last_count", parsed.size).apply()
-                    val first = cats.indexOf(startCat).takeIf { it >= 0 } ?: 1
-                    startCat = null
-                    selectCategory(first)
-                }
-            }
-        }.start()
-    }
-
-    private fun countOf(cat: String) = when (cat) {
-        "Favoritos" -> all.count { it.url in favs }
-        "Todos" -> all.size
-        else -> counts[cat] ?: 0
-    }
-
-    private fun selectCategory(i: Int) {
-        val c = cats[i]
-        shown = when (c) {
-            "Favoritos" -> all.filter { it.url in favs }
-            "Todos" -> all
-            else -> all.filter { it.group == c }
-        }
-        catList.setItemChecked(i, true)
-        (catList.adapter as? BaseAdapter)?.notifyDataSetChanged()
-        (chList.adapter as? BaseAdapter)?.notifyDataSetChanged()
     }
 
     private inner class CatAdapter : BaseAdapter() {
@@ -310,8 +184,9 @@ class MainActivity : Activity() {
         override fun getItemId(p: Int) = p.toLong()
         override fun getView(p: Int, v: View?, parent: ViewGroup): View {
             val row = v ?: LayoutInflater.from(this@MainActivity).inflate(R.layout.item_category, parent, false)
-            row.findViewById<TextView>(R.id.cname).text = cats[p]
-            row.findViewById<TextView>(R.id.ccount).text = countOf(cats[p]).toString()
+            val c = cats[p]
+            row.findViewById<TextView>(R.id.cname).text = if (Store.adultGroup(c)) "[18+] $c" else c
+            row.findViewById<TextView>(R.id.ccount).text = countOf(c).toString()
             return row
         }
     }
@@ -325,36 +200,25 @@ class MainActivity : Activity() {
             val ch = shown[p]
             row.findViewById<TextView>(R.id.num).text = "#" + ch.num
             row.findViewById<TextView>(R.id.name).text = ch.title
-            ImageLoader.load(ch.logo, row.findViewById(R.id.logo))
+            ImageLoader.load(ch.logo, row.findViewById<ImageView>(R.id.logo))
             val heart = row.findViewById<TextView>(R.id.heart)
             heart.text = if (ch.url in favs) "♥" else "♡"
             heart.setOnClickListener {
                 if (!favs.remove(ch.url)) favs.add(ch.url)
                 prefs.edit().putStringSet("favs", HashSet(favs)).apply()
                 val fav = cats.indexOf("Favoritos")
-                val onFavs = catList.checkedItemPosition == fav
-                if (onFavs) selectCategory(fav) else {
-                    notifyDataSetChanged(); (catList.adapter as? BaseAdapter)?.notifyDataSetChanged()
-                }
+                if (catList.checkedItemPosition == fav) selectCategory(fav)
+                else { notifyDataSetChanged(); (catList.adapter as? BaseAdapter)?.notifyDataSetChanged() }
             }
             return row
         }
     }
 
-    @Deprecated("simple result API is enough here")
-    override fun onActivityResult(req: Int, res: Int, data: Intent?) {
-        super.onActivityResult(req, res, data)
-        val u: Uri = data?.data ?: return
-        if (res != RESULT_OK) return
-        try { contentResolver.takePersistableUriPermission(u, Intent.FLAG_GRANT_READ_URI_PERMISSION) } catch (_: Exception) {}
-        if (req == REQ_FILE) start(u.toString()) else if (req == REQ_LIST) loadList(u.toString())
-    }
-
     private fun saveProgress() {
         val p = player ?: return
         val c = current ?: return
-        // reinicia do zero se faltar pouco para acabar
-        val pos = if (p.duration > 0 && p.currentPosition > p.duration - 5000) 0L else p.currentPosition
+        if (p.duration <= 0) return   // canal ao vivo não guarda posição
+        val pos = if (p.currentPosition > p.duration - 5000) 0L else p.currentPosition
         prefs.edit().putLong(c, pos).apply()
     }
 
@@ -363,11 +227,6 @@ class MainActivity : Activity() {
 
     @Deprecated("back handling kept simple")
     override fun onBackPressed() {
-        if (fullscreen) { setFullscreen(false); return }
-        AlertDialog.Builder(this).setTitle(R.string.exit_title).setMessage(R.string.exit_msg)
-            .setNegativeButton(R.string.cancel, null)
-            .setPositiveButton(R.string.exit) { _, _ -> finish() }.show()
+        if (fullscreen) setFullscreen(false) else finish()
     }
-
-    companion object { const val REQ_FILE = 1; const val REQ_LIST = 2 }
 }

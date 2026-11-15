@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="@drawable/bg_app" android:padding="12dp">
+
+    <LinearLayout
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:gravity="center_vertical">
+        <Button android:id="@+id/back" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="←  Voltar"/>
+        <TextView android:id="@+id/kind" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:textColor="#7F8E99" android:textSize="14sp" android:textStyle="bold" android:paddingStart="14dp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
+        android:orientation="horizontal" android:layout_marginTop="10dp"
+        android:background="@drawable/bg_tile" android:padding="16dp">
+
+        <ImageView android:id="@+id/poster" android:layout_width="170dp" android:layout_height="match_parent"
+            android:scaleType="centerCrop" android:background="#0A141B" android:contentDescription="@null"/>
+
+        <LinearLayout
+            android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+            android:orientation="vertical" android:layout_marginStart="18dp">
+            <TextView android:id="@+id/dtitle" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textColor="#E6EDF2" android:textSize="26sp" android:textStyle="bold"
+                android:maxLines="2" android:ellipsize="end"/>
+            <TextView android:id="@+id/dmeta" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textColor="#4DD0E1" android:textSize="14sp" android:paddingTop="4dp"/>
+            <ScrollView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="8dp" android:maxHeight="110dp">
+                <TextView android:id="@+id/dplot" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:textColor="#CED9DE" android:textSize="15sp"/>
+            </ScrollView>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:layout_marginTop="12dp">
+                <Button android:id="@+id/dplay" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="▶  Reproduzir"/>
+                <Button android:id="@+id/dfav" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp" android:text="+ Favoritos"/>
+            </LinearLayout>
+
+            <LinearLayout android:id="@+id/serieswrap" android:layout_width="match_parent" android:layout_height="0dp"
+                android:layout_weight="1" android:orientation="vertical" android:visibility="gone">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Temporadas" android:textColor="#E6EDF2" android:textSize="16sp"
+                    android:textStyle="bold" android:paddingTop="12dp" android:paddingBottom="6dp"/>
+                <HorizontalScrollView android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:scrollbars="none">
+                    <LinearLayout android:id="@+id/seasons" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" android:orientation="horizontal"/>
+                </HorizontalScrollView>
+                <ListView android:id="@+id/eps" android:layout_width="match_parent" android:layout_height="0dp"
+                    android:layout_weight="1" android:layout_marginTop="8dp"
+                    android:divider="@android:color/transparent" android:dividerHeight="6dp"
+                    android:listSelector="@drawable/sel_focus" android:drawSelectorOnTop="true"/>
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

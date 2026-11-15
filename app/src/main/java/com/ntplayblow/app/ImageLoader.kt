@@ -9,7 +9,7 @@ import java.util.concurrent.Executors
 
 // Carregador de logos/capas minúsculo (sem biblioteca): baixa, reduz e guarda 60 imagens em memória.
 object ImageLoader {
-    private val cache = LruCache<String, Bitmap>(60)
+    private val cache = LruCache<String, Bitmap>(150)
     private val pool = Executors.newFixedThreadPool(3)
 
     fun load(url: String, iv: ImageView) {
@@ -24,7 +24,7 @@ object ImageLoader {
                 val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
                 BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
                 var s = 1
-                while (bounds.outWidth / s > 200) s *= 2
+                while (bounds.outWidth / s > 360) s *= 2
                 val bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, BitmapFactory.Options().apply { inSampleSize = s })
                     ?: return@execute
                 cache.put(url, bmp)

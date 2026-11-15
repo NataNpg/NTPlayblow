@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:orientation="vertical" android:background="@drawable/bg_item" android:padding="6dp">
+    <ImageView android:id="@+id/poster" android:layout_width="match_parent" android:layout_height="200dp"
+        android:scaleType="centerCrop" android:background="#0A141B" android:contentDescription="@null"/>
+    <TextView android:id="@+id/ctitle" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:minLines="2" android:maxLines="2" android:ellipsize="end"
+        android:padding="6dp" android:textColor="#E6EDF2" android:textSize="13sp"/>
+</LinearLayout>

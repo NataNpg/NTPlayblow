@@ -122,7 +122,7 @@ class ReceiveActivity : Activity() {
                     runOnUiThread {
                         Store.prefs(this).edit().putString("last_list", url).apply()
                         Toast.makeText(this, "Lista recebida", Toast.LENGTH_SHORT).show()
-                        startActivity(Intent(this, MainActivity::class.java)); finish()
+                        Library.invalidate(); finish()
                     }
                 } else reply(s, "400 Bad Request", page("Link inválido. Use http:// ou https://", true))
             } else reply(s, "200 OK", page("Cole o link da sua lista M3U:", true))
