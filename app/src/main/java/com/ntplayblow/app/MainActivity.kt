@@ -198,67 +198,83 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun parseM3u(text: String): List<Ch> {
-        val out = ArrayList<Ch>()
+    private var head = ""   // primeira linha da resposta, para explicar quando não é uma lista M3U
+    private var counts: Map<String, Int> = emptyMap()
+
+    // Lê a lista linha a linha (sem carregar o arquivo inteiro na memória) e guarda só o que a tela pede.
+    private fun parseStream(r: java.io.BufferedReader, out: ArrayList<Ch>, pool: HashMap<String, String>, onProgress: (Int) -> Unit): Int {
         val groupRe = Regex("group-title=\"([^\"]*)\"")
         val logoRe = Regex("tvg-logo=\"([^\"]*)\"")
+        val parental = Store.parentalOn(this)
         var title: String? = null
         var group = "Sem categoria"
         var logo = ""
-        for (raw in text.lineSequence()) {
-            val l = raw.trim()
+        var seen = 0
+        while (true) {
+            val l = (r.readLine() ?: break).trim()
+            if (l.isEmpty()) continue
+            if (head.isEmpty()) head = l.take(60)
             if (l.startsWith("#EXTINF")) {
                 title = l.substringAfterLast(',').trim()
-                group = groupRe.find(l)?.groupValues?.get(1)?.ifEmpty { null } ?: "Sem categoria"
+                val g0 = groupRe.find(l)?.groupValues?.get(1)?.ifEmpty { null } ?: "Sem categoria"
+                group = pool.getOrPut(g0) { g0 }   // reaproveita o mesmo texto da categoria
                 logo = logoRe.find(l)?.groupValues?.get(1) ?: ""
-            } else if (l.isNotEmpty() && !l.startsWith("#")) {
-                out.add(Ch(out.size + 1, title?.takeIf { it.isNotEmpty() } ?: l, l, group, logo, typeOf(l, group)))
+            } else if (!l.startsWith("#")) {
+                seen++
+                val t = typeOf(l, group)
+                if ((typeFilter == null || t == typeFilter) && !(parental && Store.blocked(this, group, title ?: "")))
+                    out.add(Ch(out.size + 1, title?.takeIf { it.isNotEmpty() } ?: l, l, group, logo, t))
                 title = null; group = "Sem categoria"; logo = ""
+                if (seen % 3000 == 0) onProgress(out.size)
             }
         }
-        return out
+        return seen
     }
 
     private fun loadList(src: String, persist: Boolean = true) {
         Toast.makeText(this, R.string.loading_list, Toast.LENGTH_SHORT).show()
+        title("Carregando lista…")
         Thread {
             var err: String? = null
-            val parsed = try {
+            val out = ArrayList<Ch>()
+            val pool = HashMap<String, String>()
+            try {
                 // várias listas separadas por "\n" (listas da conta + lista enviada por QR)
-                val merged = ArrayList<Ch>()
                 for (s in src.split("\n").filter { it.isNotBlank() }) {
                     try {
-                        val text = if (s.startsWith("http")) {
+                        head = ""
+                        val progress = { n: Int -> runOnUiThread { title("Carregando lista… $n itens") } }
+                        val seen = if (s.startsWith("http")) {
                             val c = (URL(s).openConnection() as java.net.HttpURLConnection).apply {
-                                connectTimeout = 15000; readTimeout = 30000
+                                connectTimeout = 15000; readTimeout = 60000
                                 setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 11) NTPlayblow/1.0")
                                 setRequestProperty("Accept", "*/*")
                             }
                             val code = c.responseCode
                             if (code !in 200..299) throw java.io.IOException("HTTP $code em ${URL(s).host}")
-                            c.inputStream.bufferedReader().use { it.readText() }
-                        } else contentResolver.openInputStream(Uri.parse(s))!!.bufferedReader().use { it.readText() }
-                        val items = parseM3u(text)
-                        if (items.isEmpty()) throw java.io.IOException("a resposta não é uma lista M3U: " + text.take(60).replace("\n", " "))
-                        merged += items
+                            c.inputStream.bufferedReader().use { parseStream(it, out, pool, progress) }
+                        } else contentResolver.openInputStream(Uri.parse(s))!!.bufferedReader().use { parseStream(it, out, pool, progress) }
+                        if (seen == 0) throw java.io.IOException("a resposta não é uma lista M3U: $head")
                     } catch (e: Exception) {
                         // esconde o link (leva usuário e senha da lista)
                         err = (e.message ?: e.javaClass.simpleName).replace(Regex("https?://\\S+"), "<link>")
                     }
                 }
-                merged.mapIndexed { i, c -> Ch(i + 1, c.title, c.url, c.group, c.logo, c.type) }
-                    .filter { typeFilter == null || it.type == typeFilter }
-                    .filterNot { Store.blocked(this, it.group, it.title) }
-            } catch (_: Exception) { emptyList() }
+            } catch (t: Throwable) {
+                err = if (t is OutOfMemoryError) "memória insuficiente (lista muito grande)" else (t.message ?: t.javaClass.simpleName)
+            }
+            val parsed: List<Ch> = out
             runOnUiThread {
                 if (parsed.isEmpty()) {
                     val why = err?.let { "Erro ao abrir a lista: $it" } ?: "A lista não tem itens nesta seção."
                     title(why)
                     Toast.makeText(this, why, Toast.LENGTH_LONG).show()
                 } else {
+                    if (err != null) Toast.makeText(this, "Lista incompleta: $err", Toast.LENGTH_LONG).show()
                     all = parsed
                     if (persist) prefs.edit().putString("last_list", src).apply()
-                    cats = listOf("Favoritos", "Todos") + parsed.map { it.group }.distinct()
+                    counts = parsed.groupingBy { it.group }.eachCount()
+                    cats = listOf("Favoritos", "Todos") + counts.keys
                     catList.adapter = CatAdapter()
                     chList.adapter = ChAdapter()
                     prefs.edit().putInt("last_count", parsed.size).apply()
@@ -273,7 +289,7 @@ class MainActivity : Activity() {
     private fun countOf(cat: String) = when (cat) {
         "Favoritos" -> all.count { it.url in favs }
         "Todos" -> all.size
-        else -> all.count { it.group == cat }
+        else -> counts[cat] ?: 0
     }
 
     private fun selectCategory(i: Int) {
