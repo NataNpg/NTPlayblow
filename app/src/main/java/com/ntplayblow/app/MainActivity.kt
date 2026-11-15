@@ -229,11 +229,22 @@ class MainActivity : Activity() {
                 for (s in src.split("\n").filter { it.isNotBlank() }) {
                     try {
                         val text = if (s.startsWith("http")) {
-                            val c = URL(s).openConnection().apply { connectTimeout = 15000; readTimeout = 30000 }
-                            c.getInputStream().bufferedReader().use { it.readText() }
+                            val c = (URL(s).openConnection() as java.net.HttpURLConnection).apply {
+                                connectTimeout = 15000; readTimeout = 30000
+                                setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 11) NTPlayblow/1.0")
+                                setRequestProperty("Accept", "*/*")
+                            }
+                            val code = c.responseCode
+                            if (code !in 200..299) throw java.io.IOException("HTTP $code em ${URL(s).host}")
+                            c.inputStream.bufferedReader().use { it.readText() }
                         } else contentResolver.openInputStream(Uri.parse(s))!!.bufferedReader().use { it.readText() }
-                        merged += parseM3u(text)
-                    } catch (e: Exception) { err = e.message ?: e.javaClass.simpleName }
+                        val items = parseM3u(text)
+                        if (items.isEmpty()) throw java.io.IOException("a resposta não é uma lista M3U: " + text.take(60).replace("\n", " "))
+                        merged += items
+                    } catch (e: Exception) {
+                        // esconde o link (leva usuário e senha da lista)
+                        err = (e.message ?: e.javaClass.simpleName).replace(Regex("https?://\\S+"), "<link>")
+                    }
                 }
                 merged.mapIndexed { i, c -> Ch(i + 1, c.title, c.url, c.group, c.logo, c.type) }
                     .filter { typeFilter == null || it.type == typeFilter }

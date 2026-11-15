@@ -1,10 +1,35 @@
 <resources>
     <style name="Theme.NTPlayblow" parent="android:Theme.Material.NoActionBar">
-        <item name="android:windowBackground">#05080B</item>
+        <item name="android:windowBackground">@drawable/bg_app</item>
         <item name="android:statusBarColor">#05080B</item>
         <item name="android:navigationBarColor">#05080B</item>
         <item name="android:textColor">#CED9DE</item>
         <item name="android:colorAccent">#4DD0E1</item>
         <item name="android:colorControlActivated">#4DD0E1</item>
+        <item name="android:buttonStyle">@style/Btn</item>
+        <item name="android:editTextStyle">@style/Field</item>
+    </style>
+
+    <!-- botões em pílula, sem o azul antigo do Android -->
+    <style name="Btn" parent="android:Widget.Material.Button">
+        <item name="android:background">@drawable/bg_pill</item>
+        <item name="android:textColor">#E6EDF2</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:minHeight">0dp</item>
+        <item name="android:minWidth">0dp</item>
+        <item name="android:paddingStart">20dp</item>
+        <item name="android:paddingEnd">20dp</item>
+        <item name="android:paddingTop">10dp</item>
+        <item name="android:paddingBottom">10dp</item>
+        <item name="android:stateListAnimator">@null</item>
+    </style>
+
+    <!-- campos de texto arredondados -->
+    <style name="Field" parent="android:Widget.Material.EditText">
+        <item name="android:background">@drawable/bg_input</item>
+        <item name="android:padding">12dp</item>
+        <item name="android:textColor">#E6EDF2</item>
+        <item name="android:textColorHint">#7F8E99</item>
     </style>
 </resources>
